@@ -14,9 +14,7 @@ class AddressBook:
         self.filepath = "info.csv"
         self.dataframe = pd.read_csv(self.filepath)
 
-        self.f1 = tk.Frame(self.root, 
-                    #bg="#dfe8e8"
-                    )
+        self.f1 = tk.Frame(self.root)         
         self.f2 = tk.Frame(self.root, padx = 5)
 
         self.f1.grid(row = 0, column= 0)
@@ -47,8 +45,7 @@ class AddressBook:
 
         button = ttk.Button(self.f2, command= self.open, text = "Open", padding= 5)
         button.grid(row = 0, column= 0 , padx= 5, pady= 5)
-        self.entries = {}
-
+        self.entries: dict[str, ttk.Entry] = {}
        
         for x, col in enumerate(self.dataframe):
 
@@ -62,6 +59,7 @@ class AddressBook:
         self.root.mainloop()
 
     def add(self):
+
         data = {key: self.entries[key].get() if self.entries[key].get() else None for key in self.entries}
         
 
@@ -71,20 +69,35 @@ class AddressBook:
         print(self.dataframe)
 
     def clicked(self, event):
-        idx = self.tree.focus()
-        item = self.tree.item(idx)["values"][0]
-        print(item)
-        row_index = self.dataframe[self.dataframe["name"]==item].index.tolist()[0]
-        print(row_index)
-        
-        window = tk.Toplevel(self.root)
-        
-        for col in self.dataframe.columns:
-            ttk.Label(window, text = f"{col.capitalize()}: {self.dataframe.iloc[row_index][col]}").pack(pady = 5)
+        try:
+            idx = self.tree.focus()
 
+            item = self.tree.item(idx)["values"][0]
+            row_index = self.dataframe[self.dataframe["name"]==item].index.tolist()[0]
+            window = tk.Toplevel(self.root)
+
+            self.edit = True
+            self.index = row_index
+            
+            for col in self.dataframe.columns:
+                ttk.Label(window, text = f"{col.capitalize()}: {self.dataframe.iloc[row_index][col]}").pack(pady = 5)
+                self.entries[col].delete(0, tk.END)
+                self.entries[col].insert(tk.END, self.dataframe.iloc[row_index][col])
+        except:
+            pass
+        
+        
+        
 
     def update(self):
-        pass
+        if self.edit:
+            item = self.tree.selection()[0]
+            self.tree.item(item, values = self.entries["name"].get())
+
+        data = {key: self.entries[key].get() if self.entries[key].get() else None for key in self.entries}
+
+        self.dataframe.loc[self.index] = data
+
         
     def open(self):
         pass
